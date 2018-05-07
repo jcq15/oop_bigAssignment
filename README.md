@@ -9,23 +9,36 @@
 - 计算节点表示一个计算过程，例如加法、乘法等，输入为计算的参数，输出是计算结果
 - 特殊节点包括输出、修改等，用于完善功能
 
-使用计算图可以结构化地表达计算过程，在机器学习领域有重要应用。
+使用计算图的好处在于可以结构化地表达计算过程，并且便于进行操作，在机器学习领域有重要应用。Tensorflow是对计算图的一个很好的实现。
 
 ## 安装过程
 
-- 按照<https://www.tensorflow.org/api_guides/cc/guide>的说明进行操作。平台为Windows下的Ubuntu子系统：
+按照<https://www.tensorflow.org/api_guides/cc/guide>的说明进行操作。平台为Windows下的Ubuntu子系统：
 
 `Linux version 4.4.0-43-Microsoft (Microsoft@Microsoft.com) (gcc version 5.4.0 (GCC) ) #1-Microsoft Wed Dec 31 14:42:53 PST 2014`
 
-- 在[GitHub仓库](https://github.com/tensorflow/tensorflow)中下载源码
-- [安装Bazel](https://docs.bazel.build/versions/master/install-ubuntu.html#install-with-installer-ubuntu)（注：不要忘了把安装路径添加到PATH）
-- 运行`./configure`进行配置，这里`Do you wish to build TensorFlow with OpenCL support? [y/N] n
-`要选n，否则会出现如下一直循环的情况：
-![](xunhuan.png)
-如果不幸出现这种情况，请`Ctrl+C`结束程序，重新配置，[参考这个链接](https://www.zybuluo.com/kakadee/note/657235)。
-- 复制一份源码，建立文件`tensorflow/cc/example/example.cc`
+### 1.在[GitHub仓库](https://github.com/tensorflow/tensorflow)中下载源码
+### 2.[安装Bazel](https://docs.bazel.build/versions/master/install-ubuntu.html#install-with-installer-ubuntu)
+按照说明操作做即可，不要忘了将Bazel安装目录添加到PATH：
 
-写入如下内容：
+	$ sudo vim /etc/profile 
+在末尾加入
+	
+	export PATH="$PATH:$HOME/bin"
+上面是默认安装位置，可根据实际情况修改。
+
+### 3.配置
+运行`./configure`进行配置，里面选项我也不知道干嘛的，就全用了默认值，结果出错了。查阅[资料](https://www.zybuluo.com/kakadee/note/657235)发现，其中有一步
+	
+	Do you wish to build TensorFlow with OpenCL support? [y/N]
+要选`n`，否则会出现如下一直循环的情况：
+
+![](xunhuan.png)
+
+如果不幸出现这种情况，请`Ctrl+C`结束程序，重新配置。
+
+### 4.测试
+复制一份源码，建立文件`tensorflow/cc/example/example.cc`，写入如下内容：
 
 	// tensorflow/cc/example/example.cc
 	
@@ -51,9 +64,7 @@
 	  LOG(INFO) << outputs[0].matrix<float>();
 	  return 0;
 	}
-- 建立文件`tensorflow/cc/example/BUILD`
-
-写入如下内容：
+建立文件`tensorflow/cc/example/BUILD`，写入如下内容：
 
 	load("//tensorflow:tensorflow.bzl", "tf_cc_binary")
 	
@@ -67,7 +78,7 @@
 	    ],
 	)
 
-- 运行`bazel run -c opt //tensorflow/cc/example:example`，然后见证奇迹。首次编译时间较长，可以先去打一局排位（误）。如果输出是`19 -3`则运行正确。
+运行`bazel run -c opt //tensorflow/cc/example:example`，然后见证奇迹即可。首次编译时间较长，可以先去打一局农药（误）。如果输出是`19 -3`则运行正确。
 
 ## 类与接口介绍
 
@@ -83,7 +94,9 @@ Scope类是维护计算图当前状态的主要数据结构，里面包含了计
 
 ### Operation Constructors
 
-TensorFlow中，不同的op类型由不同的类实现，我们可以通过Operation Constructors来构造节点。
+TensorFlow中，不同的op类型由不同的类实现，我们可以通过Operation Constructors来构造节点。所有的Operation Constructors第一个参数都为Scope对象，因此首先需要定义一个Scope。
+	
+	Scope scope = Scope::NewRootScope();
 
 #### 运算节点
 	auto a = Add(scope, a, b);					//加法
@@ -101,6 +114,20 @@ TensorFlow中，不同的op类型由不同的类实现，我们可以通过Opera
 	//也可以这样指定一个2×2的矩阵
 	auto c2 = Const(scope, {1, 2, 3, 4, 5, 6}, /* shape */ {1, 3, 2, 1});
 	//这样则是1×3×2×1的四阶张量，比大括号嵌套的写法可读性更强
+#### Placeholder
+Placeholder允许我们在运行时输入节点的数值，而不必在构建运算图时指定数值，从而起到占位符的作用。
+
+	auto a = Placeholder(scope, DT_INT32);
+
+第二个参数表示数据类型，常用数据类型如下表，更多内容请查阅[官方API](https://www.tensorflow.org/versions/r1.0/programmers_guide/dims_types)：
+
+|数据类型|描述|
+|---|---|
+|DT_INT32|32位整数|
+|DT_FLOAT|32位浮点数|
+|DT_DOUBLE|64位浮点数|
+|DT_COMPLEX64|两个float组成的复数|
+|DT_STRING|字符串|
 
 ### tensorflow::ClientSession
 我们需要一个session来执行运算图。session可以对计算图进行封装。具体地，我们将使用ClientSession类来实现。主要接口如下：
@@ -111,7 +138,13 @@ TensorFlow中，不同的op类型由不同的类实现，我们可以通过Opera
 	Run(const std::vector<Output>& fetch_outputs, std::vector<Tensor>* outputs) const;
 	//运行计算图，第一个参数为要计算的节点们，第二个参数为保存输出的地址
 
-同样需要传入Scope作为参数。下面是一个例子：
+	Run(
+	  const FeedType & inputs,						//以map形式输入参数
+	  const std::vector< Output > & fetch_outputs,	//要计算的节点
+	  std::vector< Tensor > *outputs				//输出
+	) const;
+
+下面是一个例子：
 
 	Scope root = Scope::NewRootScope();			//搞一个scope
 	auto c = Const(root, { {1, 1} });			
@@ -128,9 +161,48 @@ TensorFlow中，不同的op类型由不同的类实现，我们可以通过Opera
 
 ![](calculate.png)
 
-abcd为四个输入节点，中间有若干计算节点，最后算出h的值。
+abcd为四个输入节点，中间有若干计算节点，最后算出h的值。重写example的代码：
 
-## 优劣
+	#include "tensorflow/cc/client/client_session.h"
+	#include "tensorflow/cc/ops/standard_ops.h"
+	#include "tensorflow/core/framework/tensor.h"
+	
+	int main(){
+	    using namespace tensorflow;
+	    using namespace tensorflow::ops;
+	    Scope root = Scope::NewRootScope();
+	
+	    /* 构建运算图 */
+	    auto a = Placeholder(root, DT_INT32);
+	    auto b = Placeholder(root, DT_INT32);
+	    auto c = Const(root, { {3, 1}, {2, 2} });
+	    auto d = Placeholder(root, DT_INT32);
+	
+	    auto e = MatMul(root, a, b);
+	    auto f = Add(root, b, c);
+	    auto g = MatMul(root, e, f, MatMul::TransposeB(true));
+	    auto h = Multiply(root, d, g);      //注意这里的乘法是元素直接乘
+	
+	    /* 执行计算 */
+	    std::vector<Tensor> outputs;
+	    ClientSession session(root);
+	    session.Run(
+	        { {a, { {2, 1}, {0, 5} }}, {b, { {3, 3}, {7, -2} }}, {d, { {5, 5}, {5, 5} }} },
+	        //全是大括号……眼花
+	        {h},
+	        &outputs);
+	    LOG(INFO) << outputs[0].matrix<int>();
+	
+	    return 0;
+	}
+
+再次运行`bazel run -c opt //tensorflow/cc/example:example`，可以看到输出如下：
+
+![](output.png)
+
+## 设计的优劣
+
+**这里要举例子**
 
 通过图的形式描述计算有许多优点：
 
@@ -153,3 +225,4 @@ abcd为四个输入节点，中间有若干计算节点，最后算出h的值。
 2. http://wiki.jikexueyuan.com/project/tensorflow-zh/get_started/basic_usage.html
 3. https://blog.csdn.net/lenbow/article/details/52152766
 4. https://blog.csdn.net/jmh1996/article/details/78091115
+5. https://github.com/tensorflow/serving/issues/518
