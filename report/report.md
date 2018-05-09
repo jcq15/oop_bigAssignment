@@ -9,7 +9,12 @@
 - 计算节点表示一个计算过程，例如加法、乘法等，输入为计算的参数，输出是计算结果
 - 特殊节点包括输出、修改等，用于完善功能
 
-使用计算图的好处在于可以结构化地表达计算过程，并且便于进行操作，在机器学习领域有重要应用。Tensorflow是对计算图的一个很好的实现。
+使用计算图的好处在于可以结构化地表达计算过程，并且便于进行操作，在机器学习领域有重要应用。Tensorflow是对计算图的一个很好的实现。通过图的形式描述计算有许多优点：
+
+1. 通过计算图编写的程序不是逐步计算，而是先构建一个整体的图，然后通过一个session来处理，有利于整体优化，提高效率。
+2. 便于求导。在神经网络的随机梯度下降求解方法中需要计算梯度，这个过程往往涉及上百万个参数，如果用传统的方法逐个求导将极其复杂，而基于运算图的反向传播算法(back propagation)可以大大提高计算效率。
+
+当然缺点也是显而易见的，这种结构编程较为复杂，也给调试增加了难度。
 
 ## 安装过程
 
@@ -19,7 +24,7 @@
 
 ### 1.在[GitHub仓库](https://github.com/tensorflow/tensorflow)中下载源码
 ### 2.[安装Bazel](https://docs.bazel.build/versions/master/install-ubuntu.html#install-with-installer-ubuntu)
-按照说明操作做即可，不要忘了将Bazel安装目录添加到PATH：
+按照说明操作即可，不要忘了将Bazel安装目录添加到PATH：
 
 	$ sudo vim /etc/profile 
 在末尾加入
@@ -200,16 +205,21 @@ abcd为四个输入节点，中间有若干计算节点，最后算出h的值。
 
 ![](output.png)
 
+输出和预期一致，大成功！
+
 ## 设计的优劣
 
-**这里要举例子**
+我们不打算从分布式性能、GPU内存占用等比较高级的应用层面进行评价，下面仅从面向对象程序设计课程的角度简单地探讨一下接口的优劣。
 
-通过图的形式描述计算有许多优点：
+通过上面几个小例子可以看出，每一种运算节点都是单独的一个类，这样便于对不同的节点编写具体的实现函数。其优点就是面向对象编程的优点，用户只需调用提供的接口，不必关心内部实现（实际上我找了半天，想看看节点类的继承结构，但没找到）。例如在创建节点的时候，写法很统一：
 
-1. 通过计算图编写的程序不是逐步计算，而是先构建一个整体的图，然后通过一个session来处理，有利于整体优化，提高效率。
-2. 便于求导。在神经网络的随机梯度下降求解方法中需要计算梯度，这个过程往往涉及上百万个参数，如果用传统的方法逐个求导将极其复杂，而基于运算图的反向传播算法(back propagation)可以大大提高计算效率。
+	auto <变量名> = <节点名>(<Scope对象>, <其他参数>);
 
-当然缺点也是显而易见的，这种结构编程较为复杂，也给调试增加了难度。
+不管是计算节点还是常数节点，或者是Placeholder，定义方式都是统一的，便于编程。
+
+通过`ClientSession`类把图的构造和执行分开，便于分开编程和调试，这也体现了面向对象编程的特点。
+
+说到缺点，主要是难以上手。其他的缺点暂时也想不到什么，毕竟是Google的大佬们研发出来，并且修改了这么多版的。没有研究底层实现，也用的比较少，很难找出什么明显缺点。
 
 ## *求导功能
 
@@ -217,12 +227,52 @@ abcd为四个输入节点，中间有若干计算节点，最后算出h的值。
 
 ## *神经网络手写数字识别
 
+简要介绍一下神经网络手写数字识别的原理。
+### Sigmoid neurons
+
+Sigmoid neurons就像神经元，有若干输入（即一个向量）和一个输出。输入一个向量![x](http://chart.googleapis.com/chart?cht=tx&chl=x)，通过一个函数计算出输出![f(x)](http://chart.googleapis.com/chart?cht=tx&chl=f(x))。在手写数字识别中，我们可以采用这样的函数：
+
+<center>![](e1.gif)</center>
+其中
+
+<center>![](e3.gif)</center>
+是仿射变换，
+
+<center>![](e2.gif)</center>可以将输出光滑化，便于后面进行随机梯度下降寻找最优解。
+
+### 构建神经网络
+
+用许多个这种神经元，我们可以构造出一个多层神经网络，如下图。
+
+![](http://neuralnetworksanddeeplearning.com/images/tikz12.png)
+
+(图片来源：http://neuralnetworksanddeeplearning.com/chap1.html，仅用作学习使用)
+
+其中最左侧第一层的输入是待识别图片每一个像素的灰度值，中间有15个神经元，具体参数待定，10个输出表示该图片与某个数字的相似程度。
+
+### 随机梯度下降
+
+下一步就是计算神经元的参数，这里采用随机梯度下降法。首先我们需要有一组训练数据，对于数据集中的每一个输入
+![x_i](http://chart.googleapis.com/chart?cht=tx&chl=x_i)
+，我们都知道它的期望输出
+![a_i](http://chart.googleapis.com/chart?cht=tx&chl=a)
+。先随机取一组初始参数，计算出
+![x_i](http://chart.googleapis.com/chart?cht=tx&chl=x_i)
+对应的输出
+![y_i](http://chart.googleapis.com/chart?cht=tx&chl=y_i)
+，然后计算误差函数：
+
+<center>![](http://chart.googleapis.com/chart?cht=tx&chl=g(\omega,b)=\frac{1}{n}\sum_{i=1}^n|y_i-x_i|^2)</center>
+误差函数的自变量是神经元的参数，我们只要计算出梯度，然后让参数沿着梯度方向小幅度调整，就可以逐渐使误差趋向最低点，也就找到了最优解。
+
+实际的神经网络中往往需要大量的神经元，因此参数个数巨大，计算梯度较为复杂，如果采用基于计算图的反向传播算法，则可以方便地进行梯度计算。
+
 ## References
 
-以下页面在完成作业时有参考，但未在文中显式列出，也没有加入超链接。
+以下页面在完成作业时有参考，但未在文中显式列出或加入超链接，在此一并表示感谢。
 
-1. https://blog.csdn.net/jmh1996/article/details/73201060#t0
-2. http://wiki.jikexueyuan.com/project/tensorflow-zh/get_started/basic_usage.html
-3. https://blog.csdn.net/lenbow/article/details/52152766
-4. https://blog.csdn.net/jmh1996/article/details/78091115
-5. https://github.com/tensorflow/serving/issues/518
+1. [Tensorflow C++学习(二)](https://blog.csdn.net/jmh1996/article/details/73201060#t0)
+3. [Tensorflow一些常用基本概念与函数（1）](https://blog.csdn.net/lenbow/article/details/52152766)
+4. [为什么Tensorflow需要使用"图计算"来表示计算过程](https://blog.csdn.net/jmh1996/article/details/78091115)
+5. [Feeding a value for placeholder tensor in Tensorflow C++ API](https://github.com/tensorflow/serving/issues/518)
+6. [Tensorflow源码 目录树](https://blog.csdn.net/JNingWei/article/details/73550444)
