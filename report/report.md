@@ -1,3 +1,4 @@
+<font size=3>
 # <center>面向对象程序设计试点项目报告</center>
 # <center>计算图</center>
 
@@ -11,7 +12,7 @@
 
 使用计算图的好处在于可以结构化地表达计算过程，并且便于进行操作，在机器学习领域有重要应用。Tensorflow是对计算图的一个很好的实现。通过图的形式描述计算有许多优点：
 
-1. 通过计算图编写的程序不是逐步计算，而是先构建一个整体的图，然后通过一个session来处理，有利于整体优化，提高效率。
+1. 通过计算图编写的程序不是逐步计算，而是先构建一个整体的图，然后通过一个session来处理，这种构图和运行分离的模式有利于整体优化，提高效率。
 2. 便于求导。在神经网络的随机梯度下降求解方法中需要计算梯度，这个过程往往涉及上百万个参数，如果用传统的方法逐个求导将极其复杂，而基于运算图的反向传播算法(back propagation)可以大大提高计算效率。
 
 当然缺点也是显而易见的，这种结构编程较为复杂，也给调试增加了难度。
@@ -89,7 +90,15 @@
 
 以下对常用的类与接口进行简单介绍，具体内容可查阅[官方文档](https://www.tensorflow.org/api_guides/cc/guide)。
 
-首先需要说明一些常用概念。在TensorFlow中，用**张量(tensor)**来表示数据，使用**图(graph)**来表示计算任务，图中的节点称为**op(operation)**。计算的过程是，在**会话(Session)**里启动一个图，会话将图的op分发到CPU（或GPU）中计算，然后返回`tensorflow::Tensor`实例。
+首先需要说明一些常用概念。在TensorFlow中，用
+**张量(tensor)**
+来表示数据，使用
+**图(graph)**
+来表示计算任务，图中的节点称为
+**op(operation)**
+。计算的过程是，在
+**会话(Session)**
+里启动一个图，会话将图的op分发到CPU（或GPU）中计算，然后返回`tensorflow::Tensor`实例。
 
 ### tensorflow::Scope
 Scope类是维护计算图当前状态的主要数据结构，里面包含了计算图的一些属性，也封装了一些TensorFlow的操作。在构造节点时，Scope对象需要作为第一个参数传入。
@@ -166,7 +175,7 @@ Placeholder允许我们在运行时输入节点的数值，而不必在构建运
 
 ![](calculate.png)
 
-abcd为四个输入节点，中间有若干计算节点，最后算出h的值。重写example的代码：
+abcd为四个输入节点，其中abd为placeholder，c为确定的const节点。中间有若干计算节点，最后算出h的值。重写example.cc的代码如下：
 
 	#include "tensorflow/cc/client/client_session.h"
 	#include "tensorflow/cc/ops/standard_ops.h"
@@ -219,11 +228,49 @@ abcd为四个输入节点，中间有若干计算节点，最后算出h的值。
 
 通过`ClientSession`类把图的构造和执行分开，便于分开编程和调试，这也体现了面向对象编程的特点。
 
-说到缺点，主要是难以上手。其他的缺点暂时也想不到什么，毕竟是Google的大佬们研发出来，并且修改了这么多版的。没有研究底层实现，也用的比较少，很难找出什么明显缺点。
+说到缺点，主要感觉是难以上手。其他的缺点暂时没有想到，毕竟是Google的大佬们研发出来，并且修改了这么多版的。
 
 ## *求导功能
 
-## *Variable
+说明：网络上c++版本的资料较少，因此下面的讨论及代码均基于python版本。
+
+### 原理
+
+TensorFlow使用的求导方法称为自动微分（Automatic Differentiation），其核心原理就是链式法则。
+
+首先对于一个给定的计算图，我们要计算节点Z对Y的导数，可以先获得Y到Z的所有路径，对每条路径上的偏导数求和即可。而每条路径上的偏导数则是每条边上偏导数的乘积。
+
+![](http://colah.github.io/posts/2015-08-Backprop/img/chain-def-greek.png)
+（图片来源：<http://colah.github.io/posts/2015-08-Backprop/>）
+
+对于上面这张计算图，比如我们要计算Z对X的导数。首先计算Z对Y的导数，有三条路径，导数分别为δ、ε、ζ，Y到X也有三条路径，导数为α、β、γ，Z对X的导数就可以写为(α+β+γ)(δ+ε+ζ)。
+
+### 编程实现
+
+可以通过`tf.gradients`函数计算导数：
+
+	tf.gradients(
+	    ys,					//一组节点
+	    xs,					//另一组节点
+	    grad_ys=None,
+	    name='gradients',
+	    colocate_gradients_with_ops=False,
+	    gate_gradients=False,
+	    aggregation_method=None,
+	    stop_gradients=None
+	)
+这个函数可以计算dy/dx，定义在`tensorflow/python/ops/gradients_impl.py`中。stop_gradients是一组节点，表示不再对这些节点继续求导，而将其视作常数。函数返回值为dy/dx。
+
+	a = tf.constant(0.)
+	b = 2 * a
+	g = tf.gradients(a + b, [a, b])
+a+b对a的偏导数为1+db/da=1+2=3，a+b对b的偏导数为1，输出[3.0, 1.0]。
+
+如果我们这样写：
+
+	g = tf.gradients(a + b, [a, b], stop_gradients=[a, b])
+就不再对b继续向下求导了，此时a+b对a的偏导数为1，对b的偏导数为1，因此输出[1.0, 1.0]。
+
 
 ## *神经网络手写数字识别
 
@@ -262,7 +309,7 @@ Sigmoid neurons就像神经元，有若干输入（即一个向量）和一个�
 ![y_i](http://chart.googleapis.com/chart?cht=tx&chl=y_i)
 ，然后计算误差函数：
 
-<center>![](http://chart.googleapis.com/chart?cht=tx&chl=g(\omega,b)=\frac{1}{n}\sum_{i=1}^n|y_i-x_i|^2)</center>
+<center>![](e4.gif)</center>
 误差函数的自变量是神经元的参数，我们只要计算出梯度，然后让参数沿着梯度方向小幅度调整，就可以逐渐使误差趋向最低点，也就找到了最优解。
 
 实际的神经网络中往往需要大量的神经元，因此参数个数巨大，计算梯度较为复杂，如果采用基于计算图的反向传播算法，则可以方便地进行梯度计算。
@@ -276,3 +323,4 @@ Sigmoid neurons就像神经元，有若干输入（即一个向量）和一个�
 4. [为什么Tensorflow需要使用"图计算"来表示计算过程](https://blog.csdn.net/jmh1996/article/details/78091115)
 5. [Feeding a value for placeholder tensor in Tensorflow C++ API](https://github.com/tensorflow/serving/issues/518)
 6. [Tensorflow源码 目录树](https://blog.csdn.net/JNingWei/article/details/73550444)
+7. [Calculus on Computational Graphs: Backpropagation](http://colah.github.io/posts/2015-08-Backprop/)
