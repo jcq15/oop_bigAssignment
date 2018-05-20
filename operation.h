@@ -2,7 +2,7 @@
 
 Date: 20180517
 
-Description: 定义了一些东西
+Description: 在这里写一些描述
 
 **************************************************/
 #ifndef OPERATION_H
@@ -14,7 +14,10 @@ Description: 定义了一些东西
 namespace ops {
 class PlaceholderRoot;
 class OpType;
+//DataMap是为placeholder赋值时使用的，具体写法是：
+//{ {<节点1的地址>, p_float(<具体数值>)}, {……} }（这是个map）
 typedef std::map<ops::PlaceholderRoot*, ops::OpType*> DataMap;
+
 /// 所有节点的抽象基类 
 class Operation {
 protected:
@@ -35,7 +38,7 @@ public:
     virtual OpType* eval(const DataMap& = DataMap()) = 0;
 };
 
-/// 所有placeholder的抽象基类，派生出不同数据类型的placeholder
+/// 所有placeholder的抽象基类，派生出具体数据类型的placeholder
 class PlaceholderRoot :public Operation { 
 protected:
     bool hasData;                      //是否已经被赋值
@@ -54,7 +57,6 @@ public:
 /// float类的placeholder
 class PlaceholderFloat :public PlaceholderRoot {
 protected:
-    
 public:
     virtual ~PlaceholderFloat();
     /* 接口 */
@@ -64,18 +66,23 @@ public:
 /// 类型的基类
 class OpType {
 protected:
-    //所以要用这个虚函数适配不同的具体类型，把数据塞进ostream里
+    //流输出运算符不能用虚函数
+    //所以用这个虚函数适配不同的具体类型，把数据塞进ostream里
     virtual std::ostream& output(std::ostream&) const = 0;
+
     //clone函数，用于实现基类指针的“深拷贝”
+    //在eval函数中用到了
+    //不过现在似乎不需要它，因为已经不存在右值了
     virtual OpType* clone() = 0;
-    //为什么大家都把它声明成友元！
 public:
-    friend Operation;
+    friend Operation;       //只用了其中一个函数而已
     //重载流输出运算，它不能是虚函数
-    friend std::ostream& operator<< (std::ostream& out, const ops::OpType* op);
-    /* mark:需要以虚函数的形式重载流操作符 */
+    friend std::ostream& operator<< (std::ostream& out, const OpType* op);
     virtual ~OpType() = 0;
 };
+
+//这里必须声明一次
+std::ostream& operator<< (std::ostream&, const OpType*);
 
 /// float类型
 class op_float :public OpType {
@@ -85,9 +92,11 @@ protected:
 public:
     op_float();
     op_float(const float);
-    float data;
+    float data;     //似乎可以设成protected？
 };
 
+//这个是将float转成op_float指针的函数，参见main文件34行
+op_float* p_float(const float);
 
 }
 

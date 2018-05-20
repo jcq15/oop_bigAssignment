@@ -73,10 +73,14 @@ std::ostream& op_float::output(std::ostream& out) const {
     return out;
 }
 
+op_float* p_float(const float data) {
+    op_float* p = new op_float(data);
+    return p;
+}
+
 }
 
 //这个要在命名空间外
-std::ostream& operator<< (std::ostream& out, const ops::OpType* op) {
-    //return op->output(out);
-    return out;
+std::ostream& ops::operator<< (std::ostream& out, const ops::OpType* op) {
+    return op->output(out);
 }

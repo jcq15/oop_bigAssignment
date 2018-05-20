@@ -1,13 +1,12 @@
 #include <iostream>
-#include <vector>
 #include <map>
-#include <typeinfo>
 #include "operation.h"
 
 using namespace std;
 using namespace ops;
 
 /**
+//这是和这个项目没啥关系的测试代码，请无视
 class a {
 public:
     int aa;
@@ -28,15 +27,11 @@ void test(const vector<int>& test) {
 **/
 
 int main() {
-    //a* aha = new a;
-    //cout << aha;
-    
     PlaceholderFloat op;
 
-    //auto* a = { {&op,&op_float(2.5)} };
-    cout << op.eval(a);
+    cout << op.eval({ {&op,p_float(2.5)} });
 
-    int aaa;
-    cin >> aaa;
+    char fuck;
+    cin >> fuck;
     return 0;
 }
