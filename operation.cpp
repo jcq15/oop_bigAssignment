@@ -2,85 +2,216 @@
 
 Date: 20180517
 
-Description: ¶¨ÒåÁËÒ»Ğ©¶«Î÷
+Description: Â¶Â¨Ã’Ã¥ÃÃ‹Ã’Â»ÃÂ©Â¶Â«ÃÃ·
 
 **************************************************/
 
-#include "operation.h"
+#include "Operation.h"
+#include "Optype.h"
 #include <iostream>
 
 namespace ops {
 
-Operation::Operation() :inNum(0), outNum(0), inputs(nullptr),
-    outputs(nullptr), changed(false), data(nullptr) {}
-
+Operation::Operation() :outputs(), changed(false), data(nullptr) {
+    input[0] = nullptr;
+    input[1] = nullptr;
+}
 Operation::~Operation() {
-    //ÕâÀï´ıÍêÉÆ£¬¼ì²âÒ»ÏÂÊÇ·ñÊÍ·Åinputs£¬outputs
-}
-
-//ÇóÖµº¯Êı£¬´Ë´¦ÎªËùÓĞplaceholder¸³Öµ
-//¿¼ÂÇµ½plchdµÄsecondÏîºÜ¿ÉÄÜÊÇÓÒÖµ£¬ÕâÀïÖØĞÂnewÒ»¸ö
-OpType* Operation::eval(const DataMap& plchd) {
-    for (auto v : plchd) {
-        v.first->setdata(v.second->clone());
+    if(!outputs.empty()){
+        std::cout << "Error" << std::endl;
+        return;
     }
-    return nullptr;
+    for(int i=0; i<=1; i++){
+        if(!input[i])continue;
+        for(auto iter = input[i]->outputs.begin(); iter!=input[i]->outputs.end() ;iter++){
+            if(*iter==this){
+                input[i]->outputs.erase(iter);
+                break;
+            }
+        }
+    }
+    return;
 }
 
-PlaceholderRoot::PlaceholderRoot() :hasData(false) {}
+void Operation::_set_outputs_(Operation* op) {
+    outputs.push_back(op);
+}
 
-//ÉèÖÃplaceholderµÄÖµ£¬Ò»°ã²»ĞèÒªÖØÔØ
+void Operation::setChanged(){
+    if(changed)return;
+    changed = true;
+    for(auto iter = outputs.begin(); iter!=outputs.end() ;iter++){//æ ‡è®°ä»–åé¢çš„èŠ‚ç‚¹
+        Operation* p = *iter;
+        p->setChanged();
+    }
+}
+OpType* Operation::eval(const DataMap& plchd){
+    for (auto v : plchd) {
+        v.first->setdata(v.second);
+    }
+    return data;
+}
+
+OpType* ConstantRoot::eval(const DataMap& plchd){
+    return Operation::eval(plchd);
+}
+
+ConstantFloat::ConstantFloat() {}
+ConstantFloat::ConstantFloat(const float f){
+    data = pfloat(f);
+}
+OpType* ConstantFloat::eval(const DataMap& plchd){
+    return Operation::eval(plchd);
+}
+
+AddFloat ConstantFloat::operator+(ConstantFloat& op) {
+    AddFloat ans(*this, op);
+    return ans;
+}
+MinusFloat ConstantFloat::operator-(ConstantFloat& op) {
+    MinusFloat ans(*this, op);
+    return ans;
+}
+MulFloat ConstantFloat::operator*(ConstantFloat& op) {
+    MulFloat ans(*this, op);
+    return ans;
+}
+DivFloat ConstantFloat::operator/(ConstantFloat& op) {
+    DivFloat ans(*this, op);
+    return ans;
+}
+
+
 void PlaceholderRoot::setdata(OpType* input) {
     data = input;
-    hasData = true;
+    setChanged();
+    changed = false;
+}
+OpType* PlaceholderRoot::eval(const DataMap& plchd){
+    return Operation::eval(plchd);
 }
 
-OpType* PlaceholderRoot::eval(const DataMap& plchd) {
-    if (!plchd.empty()) Operation::eval(plchd);    //Èç¹û·Ç¿Õ£¬Îªplaceholder¸³Öµ
-    if (hasData) {
-        return data;
-    }
-    else {
-        std::cerr << "Error£¡PlaceholderÎ´¸³Öµ£¡" << std::endl;
-        return nullptr;
-    }
+OpType* PlaceholderFloat::eval(const DataMap& plchd){
+    return Operation::eval(plchd);
 }
 
-PlaceholderRoot::~PlaceholderRoot() {}
-
-PlaceholderFloat::~PlaceholderFloat() {}
-
-OpType* PlaceholderFloat::eval(const DataMap& plchd) {
-    return PlaceholderRoot::eval(plchd);
-    //Ö±½Óµ÷ÓÃ»ùÀàº¯Êı¼´¿É£¬ÎªÁË´úÂëÍ³Ò»ĞÔ£¬»¹ÊÇÖØĞ´ÁËÒ»ÏÂ
+ParameterRoot::ParameterRoot() {}
+void ParameterRoot::set(OpType* input) {
+    *data = *input;
+    setChanged();   //æŠŠå®ƒçš„è¾“å‡ºçš„changedè®¾ä¸ºtrueï¼Œä½†ä»–è‡ªå·±çš„æ˜¯false
+    changed = false;
+    return;
+}
+void ParameterFloat::add(float input) {
+    data = new Op_float(*static_cast<Op_float*>(data) + *pfloat(input));
+    setChanged();
+    changed = false;
+    return;
+}
+void ParameterFloat::minus(float input) {
+    data = new Op_float(*static_cast<Op_float*>(data) - *pfloat(input));
+    setChanged();
+    changed = false;
+    return;
+}
+void ParameterFloat::multiply(float input) {
+    data = new Op_float(*static_cast<Op_float*>(data) * *pfloat(input));
+    setChanged();
+    changed = false;
+    return;
+}
+void ParameterFloat::divide(float input) {
+    data = new Op_float(*static_cast<Op_float*>(data) / *pfloat(input));
+    setChanged();
+    changed = false;
+    return;
+}
+OpType* ParameterRoot::eval(const DataMap& plchd) {
+    return Operation::eval(plchd);
 }
 
-
-
-OpType* op_float::clone() {
-    op_float* newOp = new op_float(*this);
-    return newOp;
+OpType* ParameterFloat::eval(const DataMap& plchd) {
+    return Operation::eval(plchd);
+}
+ParameterFloat::ParameterFloat() :ParameterRoot(),ConstantFloat() {}
+ParameterFloat::ParameterFloat(const float f) : ParameterRoot() {
+    data = pfloat(f);
 }
 
-OpType::~OpType() {}
-
-op_float::op_float() :data(0) {}
-
-op_float::op_float(const float num) : data(num) {}
-
-std::ostream& op_float::output(std::ostream& out) const {
-    out << data;
-    return out;
+/// å››åˆ™è¿ç®—
+AddFloat::AddFloat(Operation& a, Operation& b) {
+    changed = true;
+    input[0] = &a, input[1] = &b;
+    a._set_outputs_(this);      //ç»™ä»–ä»¬æ·»åŠ è¾“å‡º
+    b._set_outputs_(this);
 }
 
-op_float* p_float(const float data) {
-    op_float* p = new op_float(data);
-    return p;
+OpType* AddFloat::eval(const DataMap& plchd) {
+    Operation::eval(plchd);
+    if (!changed) return data;      //å¦‚æœæ•°æ®æ­£ç¡®ï¼Œç›´æ¥è¾“å‡º
+    data = new Op_float(*static_cast<Op_float*>(input[0]->eval())
+        + *static_cast<Op_float*>(input[1]->eval()));
+    changed = false;
+    return data;
 }
+
+MinusFloat::MinusFloat(Operation& a, Operation& b) {
+    changed = true;
+    input[0] = &a, input[1] = &b;
+    a._set_outputs_(this);      //ç»™ä»–ä»¬æ·»åŠ è¾“å‡º
+    b._set_outputs_(this);
+}
+
+OpType* MinusFloat::eval(const DataMap& plchd) {
+    Operation::eval(plchd);
+    if (!changed) return data;      //å¦‚æœæ•°æ®æ­£ç¡®ï¼Œç›´æ¥è¾“å‡º
+    data = new Op_float(*static_cast<Op_float*>(input[0]->eval())
+        - *static_cast<Op_float*>(input[1]->eval()));
+    changed = false;
+    return data;
+}
+
+MulFloat::MulFloat(Operation& a, Operation& b) {
+    changed = true;
+    input[0] = &a, input[1] = &b;
+    a._set_outputs_(this);      //ç»™ä»–ä»¬æ·»åŠ è¾“å‡º
+    b._set_outputs_(this);
+}
+
+OpType* MulFloat::eval(const DataMap& plchd) {
+    Operation::eval(plchd);
+    if (!changed) return data;      //å¦‚æœæ•°æ®æ­£ç¡®ï¼Œç›´æ¥è¾“å‡º
+    data = new Op_float(*static_cast<Op_float*>(input[0]->eval())
+        * *static_cast<Op_float*>(input[1]->eval()));
+    changed = false;
+    return data;
+}
+
+DivFloat::DivFloat(Operation& a, Operation& b) {
+    changed = true;
+    input[0] = &a, input[1] = &b;
+    a._set_outputs_(this);      //ç»™ä»–ä»¬æ·»åŠ è¾“å‡º
+    b._set_outputs_(this);
+}
+
+OpType* DivFloat::eval(const DataMap& plchd) {
+    Operation::eval(plchd);
+    if (!changed) return data;      //å¦‚æœæ•°æ®æ­£ç¡®ï¼Œç›´æ¥è¾“å‡º
+    data = new Op_float(*static_cast<Op_float*>(input[0]->eval())
+        / *static_cast<Op_float*>(input[1]->eval()));
+    changed = false;
+    return data;
+}
+
+/*template <class T>
+T& print(T& op) {
+    std::cout << op.eval();
+    return op;
+}*/
 
 }
 
-//Õâ¸öÒªÔÚÃüÃû¿Õ¼äÍâ
+// é‡è½½æµè¾“å‡º
 std::ostream& ops::operator<< (std::ostream& out, const ops::OpType* op) {
     return op->output(out);
 }

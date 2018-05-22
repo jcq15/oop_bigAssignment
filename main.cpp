@@ -1,37 +1,22 @@
 #include <iostream>
 #include <map>
-#include "operation.h"
+#include "Operation.h"
+#include "Optype.h"
 
 using namespace std;
 using namespace ops;
 
-/**
-//这是和这个项目没啥关系的测试代码，请无视
-class a {
-public:
-    int aa;
-    a() :aa(1024){}
-    friend ostream& operator << (ostream& out, const a&);
-};
-
-ostream& operator << (ostream& out, const a* wow) {
-    out << wow->aa << endl;
-    return out;
-}
-
-
-void test(const vector<int>& test) {
-    int a = test[0];
-    cout << "ok!" << a << endl;
-}
-**/
-
 int main() {
-    PlaceholderFloat op;
 
-    cout << op.eval({ {&op,p_float(2.5)} });
+    auto x = PlaceholderFloat();
+    auto y = PlaceholderFloat();
+    auto z = ConstantFloat(3);
+    auto t1 = x+y;
+    auto t2 = y/z;
+    auto res = t1*t2;
+    cout << res.eval({ {&x, pfloat(1)} , {&y, pfloat(2)} }) << endl; //2
+    cout << res.eval({ {&x, pfloat(3)} , {&y, pfloat(1)} }) << endl; //1.333333
+    cout << res.eval({ {&x, pfloat(4)} , {&y, pfloat(5)} }) << endl; //15
 
-    char fuck;
-    cin >> fuck;
     return 0;
 }
