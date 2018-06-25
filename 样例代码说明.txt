@@ -1,0 +1,7 @@
+已给出API中示例代码(main.cpp) 以及对应的windows和linux下的Makefile文件(Makefile)和(Makefile-linux)
+在命令行中使用mingw32-make进行编译
+test运行
+
+同时给出作业要求中的四个伪代码实例及相应的Makefile文件
+第k个样例源代码为testk.cpp 
+Makeifle文件为Makefilek 与 Makefilek-linux

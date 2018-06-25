@@ -1,8 +1,8 @@
-OBJ      = Constant.o main.o Tensor.o Node.o Placeholder.o DoubleOperator.o SingleOperator.o Variable.o
+OBJ      = Constant.o test4.o Tensor.o Node.o Placeholder.o DoubleOperator.o SingleOperator.o Variable.o
 
-all:test.exe
+all:test
 
-test.exe: $(OBJ)
+test: $(OBJ)
 
 	g++ $(OBJ) -o test -std=c++11
 
@@ -34,15 +34,15 @@ Variable.o:Node.h Variable.h Variable.cpp Tensor.h
 
 	g++ -c Variable.cpp -o Variable.o -std=c++11 
 
-main.o:main.cpp Constant.h Placeholder.h Tensor.h Node.h Variable.h DoubleOperator.h SingleOperator.h 
+test4.o:test4.cpp Constant.h Placeholder.h Tensor.h Node.h Variable.h DoubleOperator.h SingleOperator.h 
 
-	g++ -c main.cpp -o main.o -std=c++11
+	g++ -c test4.cpp -o test4.o -std=c++11
 
 .PHONY:clean
 
 clean:
 
-	del test.exe $(OBJ)
+	rm -f  test $(OBJ)
 
 
 

@@ -1,8 +1,8 @@
 OBJ      = Constant.o main.o Tensor.o Node.o Placeholder.o DoubleOperator.o SingleOperator.o Variable.o
 
-all:test.exe
+all:test
 
-test.exe: $(OBJ)
+test: $(OBJ)
 
 	g++ $(OBJ) -o test -std=c++11
 
@@ -42,7 +42,7 @@ main.o:main.cpp Constant.h Placeholder.h Tensor.h Node.h Variable.h DoubleOperat
 
 clean:
 
-	del test.exe $(OBJ)
+	rm -f test $(OBJ)
 
 
 

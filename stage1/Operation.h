@@ -1,11 +1,4 @@
-/*************************************************
-
-Date: 20180517
-
-Description: ÔÚÕâÀïĞ´Ò»Ğ©ÃèÊö
-
-**************************************************/
-#ifndef OPERATION_H
+ï»¿#ifndef OPERATION_H
 #define OPERATION_H
 
 #include "Optype.h"
@@ -20,67 +13,61 @@ class AddFloat;
 class MinusFloat;
 class MulFloat;
 class DivFloat;
-//DataMapÊÇÎªplaceholder¸³ÖµÊ±Ê¹ÓÃµÄ£¬¾ßÌåĞ´·¨ÊÇ£º
-//{ {<½Úµã1µÄµØÖ·>, pfloat(<¾ßÌåÊıÖµ>)}, {¡­¡­} }£¨ÕâÊÇ¸ömap£©
+
+//DataMapç”¨æ¥ç»™placeholderèµ‹å€¼ï¼Œä½¿ç”¨æ–¹æ³•è¯·å‚è€ƒç¤ºä¾‹ä»£ç 
 typedef std::map<ops::PlaceholderRoot*, ops::OpType*> DataMap;
 
-/// ËùÓĞ½ÚµãµÄ³éÏó»ùÀà 
+/// æ‰€æœ‰èŠ‚ç‚¹çš„æŠ½è±¡åŸºç±»
 class Operation {
 protected:
-    Operation* input[2];          //ÊäÈë½Úµã
-    std::list<Operation*> outputs;  //Êä³ö½Úµã
-    bool changed;               //±ê¼ÇÊÇ·ñ±»¸Ä±ä£¨dataµÄÖµÊÇ·ñÊÇÊµ¼ÊÖµ£©
-    OpType* data;               //Êı¾İ
-    void setChanged();          //±ê¼ÇËüºÍËüÖ®ºóµÄ½Úµã£¬Êı¾İ±»ĞŞ¸ÄÁË
+    Operation* input[2];                //è¾“å…¥èŠ‚ç‚¹ï¼ˆ0æˆ–1æˆ–2ä¸ªï¼‰
+    std::list<Operation*> outputs;      //è¾“å‡ºèŠ‚ç‚¹
+    bool changed;                       //æ ‡è®°dataæ˜¯å¦æœ€æ–°
+    OpType* data;                       //æ•°æ®
+    void setChanged();                  //ä¿®æ”¹å’Œä»–ç›¸å…³çš„èŠ‚ç‚¹çš„changedå±æ€§
 public:
     Operation();
     virtual ~Operation() = 0;
-    void _set_outputs_(Operation*);     //Ìí¼ÓÊä³öµÄ½Ó¿Ú
+    void _set_outputs_(Operation*);     //æ·»åŠ è¾“å‡º
 
-    //Í¨¹ıevalÇóÖµ£¬ÒÔmapĞÎÊ½ÊäÈëplaceholderµÄ²ÎÊı
-    //ÕâÀï¸ø³öµÄ´úÂëÎªËùÓĞµÄplaceholder¸³Öµ£¬¿É×÷ÎªÅÉÉúÀàµÄ¹«¹²´úÂëÊ¹ÓÃ
+    //è¿™é‡Œæä¾›äº†å…¬å…±ä»£ç ï¼šä¸ºplaceholderèµ‹å€¼
     virtual OpType* eval(const DataMap& plchd = DataMap()) = 0;
 };
 
-///³£Êı½ÚµãµÄ³éÏó»ùÀà
+/// æ‰€æœ‰Constantçš„æŠ½è±¡åŸºç±»
 class ConstantRoot :public virtual Operation{
 public:
 	virtual OpType* eval(const DataMap& plchd = DataMap()) override = 0;
 };
 
-///floatÀàĞÍµÄ³£Êı½Úµã0
 class ConstantFloat :public virtual ConstantRoot{
 public:
     ConstantFloat();
 	ConstantFloat(const float);
 	OpType* eval(const DataMap& plchd = DataMap()) override;
 
-    //ÖØÔØ²Ù×÷·û
+    //å››åˆ™è¿ç®—
     AddFloat operator+(ConstantFloat&);
     MinusFloat operator-(ConstantFloat&);
     MulFloat operator*(ConstantFloat&);
     DivFloat operator/(ConstantFloat&);
 };
 
-
-/// ËùÓĞplaceholderµÄ³éÏó»ùÀà£¬¼Ì³Ğ×ÔConstantRoot£¬ÅÉÉú³ö¾ßÌåÊı¾İÀàĞÍµÄplaceholder
+/// æ‰€æœ‰Placeholderç±»çš„æŠ½è±¡åŸºç±»
 class PlaceholderRoot :public virtual ConstantRoot { 
 protected:
-    virtual void setdata(OpType*);     //ÉèÖÃplaceholderµÄÖµ
+    virtual void setdata(OpType*);     //Ã‰Ã¨Ã–ÃƒplaceholderÂµÃ„Ã–Âµ
     friend OpType* Operation::eval(const DataMap& plchd = DataMap());
 public:
-    /* ½Ó¿Ú */
-    //eval£¬´Ë´¦²éÕÒÊÇ·ñÒÑ¸³Öµ£¬ÊÇÔò·µ»Ø£¬·ñÔò±¨´í²¢·µ»Ø¿ÕÖ¸Õë
     virtual OpType* eval(const DataMap& plchd = DataMap()) override = 0;
 };
 
-/// floatÀàµÄplaceholder
 class PlaceholderFloat :public virtual PlaceholderRoot, public ConstantFloat {
 public:
     OpType* eval(const DataMap& plchd = DataMap()) override;
 };
 
-/// parameterµÄ»ùÀà
+/// parameterçš„æŠ½è±¡åŸºç±»
 class ParameterRoot :public virtual ConstantRoot {
 public:
     ParameterRoot();
@@ -90,6 +77,7 @@ public:
 
 class ParameterFloat :public virtual ParameterRoot, public ConstantFloat {
 public:
+    void set(float);
     void add(float);
     void minus(float);
     void multiply(float);
@@ -97,13 +85,12 @@ public:
 
     ParameterFloat();
     ParameterFloat(const float);
-    //~ParameterFloat();
 
     virtual OpType* eval(const DataMap& plchd = DataMap()) override;
 
 };
 
-/// ·µ»ØÖµÊÇfloatµÄÔËËã
+/// å››åˆ™è¿ç®—
 class AddFloat :public ConstantFloat {
 public:
     AddFloat(Operation&, Operation&);
@@ -125,12 +112,12 @@ public:
     OpType* eval(const DataMap& plchd = DataMap()) override;
 };
 
-/// print
-template <class T>
-T& print(T& op){
-    std::cout << op.eval() << std::endl;
-    return op;
-}
+/// printèŠ‚ç‚¹
+class Print :public ConstantFloat{
+public:
+    Print(Operation&);
+    OpType* eval(const DataMap& plchd = DataMap());
+};
 
 }
 

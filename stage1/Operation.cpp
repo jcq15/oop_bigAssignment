@@ -1,11 +1,3 @@
-/*************************************************
-
-Date: 20180517
-
-Description: ¶¨ÒåÁËÒ»Ð©¶«Î÷
-
-**************************************************/
-
 #include "Operation.h"
 #include "Optype.h"
 #include <iostream>
@@ -18,7 +10,7 @@ Operation::Operation() :outputs(), changed(false), data(nullptr) {
 }
 Operation::~Operation() {
     if(!outputs.empty()){
-        std::cout << "Error" << std::endl;
+        std::cout << "Error:还有以这个节点为输入的节点" << std::endl;
         return;
     }
     for(int i=0; i<=1; i++){
@@ -99,6 +91,12 @@ ParameterRoot::ParameterRoot() {}
 void ParameterRoot::set(OpType* input) {
     *data = *input;
     setChanged();   //把它的输出的changed设为true，但他自己的是false
+    changed = false;
+    return;
+}
+void ParameterFloat::set(float input){
+    data = pfloat(input);
+    setChanged();
     changed = false;
     return;
 }
@@ -203,11 +201,19 @@ OpType* DivFloat::eval(const DataMap& plchd) {
     return data;
 }
 
-/*template <class T>
-T& print(T& op) {
-    std::cout << op.eval();
-    return op;
-}*/
+Print::Print(Operation& op){
+    changed = true;
+    input[0] = &op, input[1] = nullptr;
+    op._set_outputs_(this);
+}
+OpType* Print::eval(const DataMap& plchd){
+    Operation::eval(plchd);
+    if(!changed)return data;
+    data = new Op_float(*static_cast<Op_float*>(input[0]->eval()));
+    std::cout << "Print Operation : " << data << std::endl;
+    changed = false;
+    return data;
+}
 
 }
 
