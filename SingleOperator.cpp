@@ -1,4 +1,7 @@
 #include "SingleOperator.h" 
+#include "DoubleOperator.h"
+#include "Constant.h"
+
 Tensor SingleOperator::eval(std::map<std::string,Tensor>& Inputs)
 {
 	if(value==nullptr)
@@ -37,3 +40,64 @@ Tensor* Transpose::calc(const Tensor& A)
 	return tmp;
 }
 
+/**第二阶段新增**/
+Node& Exp::derive(int index) {
+    if(index != 1) 
+        throw std::invalid_argument("Error : derive argument error! Only accept 1! ");
+    Exp* ans = new Exp(*a);
+    return *ans;
+}
+
+Node& Ln::derive(int index) {
+    if (index != 1)
+        throw std::invalid_argument("Error : derive argument error! Only accept 1! ");
+    Pow* ans = new Pow(*a, *new Constant(-1));
+    return *ans;
+}
+
+Node& Sin::derive(int index) {
+    if (index != 1)
+        throw std::invalid_argument("Error : derive argument error! Only accept 1! ");
+    Cos* ans = new Cos(*a);
+    return *ans;
+}
+
+Node& Cos::derive(int index) {
+    if (index != 1)
+        throw std::invalid_argument("Error : derive argument error! Only accept 1! ");
+    Sin* ans = new Sin((*a)*(*new Constant(-1)));
+    return *ans;
+}
+
+Node& Tan::derive(int index) {
+    if (index != 1)
+        throw std::invalid_argument("Error : derive argument error! Only accept 1! ");
+    Cos* ans = new Cos(*a);
+    Pow* ans2 = new Pow(*ans, *new Constant(-2));
+    return *ans2;
+}
+
+Node& Asin::derive(int index) {
+    if (index != 1)
+        throw std::invalid_argument("Error : derive argument error! Only accept 1! ");
+    Cos* ans = new Cos(*this);
+    Pow* ans2 = new Pow(*ans, *new Constant(-1));
+    return *ans2;
+}
+
+Node& Acos::derive(int index) {
+    if (index != 1)
+        throw std::invalid_argument("Error : derive argument error! Only accept 1! ");
+    Sin* ans = new Sin(*this * *new Constant(-1));
+    Pow* ans2 = new Pow(*ans, *new Constant(-1));
+    return *ans2;
+}
+
+Node& Atan::derive(int index) {
+    if (index != 1)
+        throw std::invalid_argument("Error : derive argument error! Only accept 1! ");
+    Pow* ans = new Pow(*a, *new Constant(2));
+    Add* ans1 = new Add(*ans, *new Constant(1));
+    Pow* ans2 = new Pow(*ans1, *new Constant(-1));
+    return *ans2;
+}

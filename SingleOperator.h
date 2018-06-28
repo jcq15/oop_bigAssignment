@@ -1,183 +1,178 @@
 #ifndef SINGLEOPERATOR
 #include "Node.h"
 #define SINGLEOPERATOR
-class SingleOperator:public Node
-{
+class SingleOperator :public Node {
 protected:
-	Node *a;
-	virtual Tensor* calc(const Tensor&)=0;
-	Tensor eval(std::map<std::string,Tensor>&);
-	void Release()
-	{
-		a->Release();
-		if(value!=nullptr)
-		{
-			delete value;
-			value=nullptr;
-		}
-	}
+    Node *a;
+    virtual Tensor* calc(const Tensor&) = 0;
+    Tensor eval(std::map<std::string, Tensor>&);
+    void Release() {
+        a->Release();
+        if (value != nullptr) {
+            delete value;
+            value = nullptr;
+        }
+    }
 public:
-	SingleOperator(const std::string& _nm,Node &_a):Node(_nm),a(&_a){}
-	void Rely(std::set<std::string>& lib){a->Rely(lib);}
+    SingleOperator(const std::string& _nm, Node &_a) :Node(_nm), a(&_a) {
+        depends = 1;
+    }
+    void Rely(std::set<std::string>& lib) { a->Rely(lib); }
+    Node* getA() const { return a; }
 };
 
-class Exp:public SingleOperator
-{
+class Exp :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A){return new Tensor(exp(A));}
+    Tensor* calc(const Tensor& A) { return new Tensor(exp(A)); }
 public:
-	Exp(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "exp("+a->Expr()+")";
-	}
+    Exp(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "exp(" + a->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
 };
 
-class Ln:public SingleOperator
-{
+class Ln :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A){return new Tensor(ln(A));}
+    Tensor* calc(const Tensor& A) { return new Tensor(ln(A)); }
 public:
-	Ln(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "ln("+a->Expr()+")";
-	}
+    Ln(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "ln(" + a->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
 };
 
-class Sin:public SingleOperator
-{
+class Sin :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A){return new Tensor(sin(A));}
+    Tensor* calc(const Tensor& A) { return new Tensor(sin(A)); }
 public:
-	Sin(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "sin("+a->Expr()+")";
-	}
+    Sin(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "sin(" + a->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
 };
 
-class Cos:public SingleOperator
-{
+class Cos :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A){return new Tensor(cos(A));}
+    Tensor* calc(const Tensor& A) { return new Tensor(cos(A)); }
 public:
-	Cos(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "cos("+a->Expr()+")";
-	}
+    Cos(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "cos(" + a->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
 };
 
-class Tan:public SingleOperator
-{
+class Tan :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A){return new Tensor(tan(A));}
+    Tensor* calc(const Tensor& A) { return new Tensor(tan(A)); }
 public:
-	Tan(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "tan("+a->Expr()+")";
-	}
-};
-class Asin:public SingleOperator
-{
-private:
-	Tensor* calc(const Tensor& A){return new Tensor(asin(A));}
-public:
-	Asin(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "asin("+a->Expr()+")";
-	}
+    Tan(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "tan(" + a->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
 };
 
-class Acos:public SingleOperator
-{
+class Asin :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A){return new Tensor(acos(A));}
+    Tensor* calc(const Tensor& A) { return new Tensor(asin(A)); }
 public:
-	Acos(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "acos("+a->Expr()+")";
-	}
+    Asin(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "asin(" + a->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
 };
 
-class Atan:public SingleOperator
-{
+class Acos :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A){return new Tensor(atan(A));}
+    Tensor* calc(const Tensor& A) { return new Tensor(acos(A)); }
 public:
-	Atan(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "atan("+a->Expr()+")";
-	}
+    Acos(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "acos(" + a->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
 };
 
-class Quadratic:public SingleOperator
-{
+class Atan :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A);
+    Tensor* calc(const Tensor& A) { return new Tensor(atan(A)); }
 public:
-	Quadratic(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "Quadratic_Cost("+a->Expr()+")";
-	}
+    Atan(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "atan(" + a->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
 };
 
-class Sigmoid:public SingleOperator
-{
+class Quadratic :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A);
+    Tensor* calc(const Tensor& A);
 public:
-	Sigmoid(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "Sigmoid("+a->Expr()+")";
-	}
+    Quadratic(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "Quadratic_Cost(" + a->Expr() + ")";
+    }
 };
 
-class Transpose:public SingleOperator
-{
+class Sigmoid :public SingleOperator {
 private:
-	Tensor* calc(const Tensor& A);
+    Tensor* calc(const Tensor& A);
 public:
-	Transpose(Node &_a,const std::string& _nm=""):SingleOperator(_nm,_a){}
-	
-	std::string Expr()
-	{
-		return "("+a->Expr()+")^T";
-	}
+    Sigmoid(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "Sigmoid(" + a->Expr() + ")";
+    }
 };
 
-class PowC:public SingleOperator
-{
+class Transpose :public SingleOperator {
 private:
-	double c;
-	Tensor* calc(const Tensor& A)override{return new Tensor(pow(A,c));}
+    Tensor* calc(const Tensor& A);
 public:
-	PowC(Node &_a,double _c,const std::string& _nm=""):SingleOperator(_nm,_a),c(_c){}
-	
-	double C(){return c;}
-	
-	std::string Expr()
-	{
-		std::string pc=std::to_string(c);
-		return "("+a->Expr()+"^"+pc+")";
-	}
+    Transpose(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+
+    std::string Expr() {
+        return "(" + a->Expr() + ")^T";
+    }
 };
+
+class PowC :public SingleOperator {
+private:
+    double c;
+    Tensor* calc(const Tensor& A)override { return new Tensor(pow(A, c)); }
+public:
+    PowC(Node &_a, double _c, const std::string& _nm = "") :SingleOperator(_nm, _a), c(_c) {}
+
+    double C() { return c; }
+
+    std::string Expr() {
+        std::string pc = std::to_string(c);
+        return "(" + a->Expr() + "^" + pc + ")";
+    }
+};
+
+/**第二阶段新增**/
 
 #endif
