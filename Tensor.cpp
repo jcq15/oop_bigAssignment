@@ -217,6 +217,32 @@ Tensor operator /(const Tensor& a,const Tensor& b)
 	return ans;
 }
 
+bool operator ==(const Tensor& a,const Tensor& b){
+	if(a.ismat||b.ismat)
+		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+	return a.value==b.value;
+}
+bool operator >(const Tensor& a,const Tensor& b){
+	if(a.ismat||b.ismat)
+		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+	return a.value>b.value;
+}
+bool operator <(const Tensor& a,const Tensor& b){
+	if(a.ismat||b.ismat)
+		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+	return a.value<b.value;
+}
+bool operator >=(const Tensor& a,const Tensor& b){
+	if(a.ismat||b.ismat)
+		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+	return a.value>=b.value;
+}
+bool operator <=(const Tensor& a,const Tensor& b){
+	if(a.ismat||b.ismat)
+		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+	return a.value<=b.value;
+}
+
 Tensor exp(const Tensor& a)
 {
 	Tensor ans(a);

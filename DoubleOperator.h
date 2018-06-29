@@ -147,4 +147,146 @@ inline Pow& operator ^(Node& A, Node& B) {
     Pow* tmp = new Pow(A, B);
     return *tmp;
 }
+
+/** stage2 append **/
+class Bigger :public DoubleOperator {
+private:
+    void Judge(const Tensor&, const Tensor&) const override;
+    Tensor eval(std::map<std::string, Tensor>&) override;
+public:
+    Bigger(Node &_a, Node &_b, const std::string& _nm = "")
+        :DoubleOperator(_a, _b, _nm) {
+        depends = 0;     //this can't be derived
+    }
+
+    Bigger(const Bigger &t) = default;
+
+    Bigger(Bigger &&t) :DoubleOperator(std::forward<DoubleOperator>(t)) {
+        depends = 0;
+    }    //perfect transforward
+
+    std::string Expr() {
+        return "(" + a->Expr() + ">" + b->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
+};
+
+class Smaller :public DoubleOperator {
+private:
+    void Judge(const Tensor&, const Tensor&) const override;
+    Tensor eval(std::map<std::string, Tensor>&) override;
+public:
+    Smaller(Node &_a, Node &_b, const std::string& _nm = "")
+        :DoubleOperator(_a, _b, _nm) {
+        depends = 0;     //this can't be derived
+    }
+
+    Smaller(const Smaller &t) = default;
+
+    Smaller(Smaller &&t) :DoubleOperator(std::forward<DoubleOperator>(t)) {
+        depends = 0;
+    }    //perfect transforward
+
+    std::string Expr() {
+        return "(" + a->Expr() + "<" + b->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
+};
+
+class BiggerEqual :public DoubleOperator {
+private:
+    void Judge(const Tensor&, const Tensor&) const override;
+    Tensor eval(std::map<std::string, Tensor>&) override;
+public:
+    BiggerEqual(Node &_a, Node &_b, const std::string& _nm = "")
+        :DoubleOperator(_a, _b, _nm) {
+        depends = 0;     //this can't be derived
+    }
+
+    BiggerEqual(const BiggerEqual &t) = default;
+
+    BiggerEqual(BiggerEqual &&t) :DoubleOperator(std::forward<DoubleOperator>(t)) {
+        depends = 0;
+    }    //perfect transforward
+
+    std::string Expr() {
+        return "(" + a->Expr() + ">=" + b->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
+};
+
+class SmallerEqual :public DoubleOperator {
+private:
+    void Judge(const Tensor&, const Tensor&) const override;
+    Tensor eval(std::map<std::string, Tensor>&) override;
+public:
+    SmallerEqual(Node &_a, Node &_b, const std::string& _nm = "")
+        :DoubleOperator(_a, _b, _nm) {
+        depends = 0;     //this can't be derived
+    }
+
+    SmallerEqual(const SmallerEqual &t) = default;
+
+    SmallerEqual(SmallerEqual &&t) :DoubleOperator(std::forward<DoubleOperator>(t)) {
+        depends = 0;
+    }    //perfect transforward
+
+    std::string Expr() {
+        return "(" + a->Expr() + "<=" + b->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
+};
+
+class Equal :public DoubleOperator {
+private:
+    void Judge(const Tensor&, const Tensor&) const override;
+    Tensor eval(std::map<std::string, Tensor>&) override;
+public:
+    Equal(Node &_a, Node &_b, const std::string& _nm = "")
+        :DoubleOperator(_a, _b, _nm) {
+        depends = 0;     //this can't be derived
+    }
+
+    Equal(const Equal &t) = default;
+
+    Equal(Equal &&t) :DoubleOperator(std::forward<DoubleOperator>(t)) {
+        depends = 0;
+    }    //perfect transforward
+
+    std::string Expr() {
+        return "(" + a->Expr() + "==" + b->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
+};
+
+inline Bigger& operator >(Node& A, Node& B) {
+    Bigger* tmp = new Bigger(A, B);
+    return *tmp;
+}
+
+inline Smaller& operator <(Node& A, Node& B) {
+    Smaller* tmp = new Smaller(A, B);
+    return *tmp;
+}
+
+inline BiggerEqual& operator >=(Node& A, Node& B) {
+    BiggerEqual* tmp = new BiggerEqual(A, B);
+    return *tmp;
+}
+
+inline SmallerEqual& operator <=(Node& A, Node& B) {
+    SmallerEqual* tmp = new SmallerEqual(A, B);
+    return *tmp;
+}
+
+inline Equal& operator ==(Node& A, Node& B) {
+    Equal* tmp = new Equal(A, B);
+    return *tmp;
+}
+
 #endif

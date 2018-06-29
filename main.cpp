@@ -14,7 +14,7 @@ int main()
     for (auto i : shit) {
         std::cout << i.first->Name() << i.second->Eval({ { "x", 6 },{ "y", 2 } }).Print() << std::endl;
     }
-
+    std::cout<<(z>=3.2);
     int a;
     std::cin >> a;
 }

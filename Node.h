@@ -53,6 +53,22 @@ public:
     int depend() const { return depends; }        //返回输入节点个数
     virtual Node& derive(int index=0); //求导数，index表示对哪个参数求导，0自己，1a，2b
     std::map<Node*, Node*>& grad();                //梯度
+
+    friend bool operator ==(const Node&, const Node&);
+    friend bool operator >(const Node&, const Node&);
+    friend bool operator <(const Node&, const Node&);
+    friend bool operator >=(const Node&, const Node&);
+    friend bool operator <=(const Node&, const Node&);
+    friend bool operator ==(const Node&a, const Tensor&b){return *a.value==b;}
+    friend bool operator >(const Node&a, const Tensor&b){return *a.value>b;}
+    friend bool operator <(const Node&a, const Tensor&b){return *a.value<b;}
+    friend bool operator >=(const Node&a, const Tensor&b){return *a.value>=b;}
+    friend bool operator <=(const Node&a, const Tensor&b){return *a.value<=b;}
+    friend bool operator ==(const Tensor&a, const Node&b){return a==*b.value;}
+    friend bool operator >(const Tensor&a, const Node&b){return a>*b.value;}
+    friend bool operator <(const Tensor&a, const Node&b){return a<*b.value;}
+    friend bool operator >=(const Tensor&a, const Node&b){return a>=*b.value;}
+    friend bool operator <=(const Tensor&a, const Node&b){return a<=*b.value;}
 };
 
 #endif

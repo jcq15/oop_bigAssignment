@@ -18,7 +18,8 @@ public:
 
     Tensor(const double val) :Tensor() { value = val; }
 
-    Tensor(const int _n, const int _m, double(**mat) = nullptr) :n(_n), m(_m), ismat(true), value(0) {
+    Tensor(const int _n, const int _m, double(**mat) = nullptr) 
+        :n(_n), m(_m), ismat(true), value(0) {
         matrix = new double*[n];
         for (int i = 0;i < n;i++)
             matrix[i] = new double[m];
@@ -29,11 +30,13 @@ public:
         }
     }
 
-    Tensor(Tensor&& t) :ismat(t.ismat), n(t.n), m(t.m), value(t.value), matrix(t.matrix) {
+    Tensor(Tensor&& t) 
+        :ismat(t.ismat), n(t.n), m(t.m), value(t.value), matrix(t.matrix) {
         if (t.ismat)t.matrix = nullptr;
     }
 
-    Tensor(const Tensor& t) :ismat(t.ismat), n(t.n), m(t.m), value(t.value), matrix(nullptr) {
+    Tensor(const Tensor& t) 
+        :ismat(t.ismat), n(t.n), m(t.m), value(t.value), matrix(nullptr) {
         if (t.ismat) {
             matrix = new double*[n];
             for (int i = 0;i < n;i++)
@@ -58,12 +61,14 @@ public:
 
     int N()const {
         if (!ismat)
-            throw std::runtime_error("Error : Try to get N from Tensor(Number)!");
+            throw (
+                "Error : Try to get N from Tensor(Number)!");
         return n;
     }
     int M()const {
         if (!ismat)
-            throw std::runtime_error("Error : Try to get M from Tensor(Number)!");
+            throw std::runtime_error(
+                "Error : Try to get M from Tensor(Number)!");
         return m;
     }
     bool Type()const { return ismat; }
@@ -104,6 +109,14 @@ public:
     friend Tensor operator-(const Tensor&, const Tensor&);
     friend Tensor operator*(const Tensor&, const Tensor&);
     friend Tensor operator/(const Tensor&, const Tensor&);
+
+    //第二阶段: == > < >= <=
+    friend bool operator ==(const Tensor&, const Tensor&);
+    friend bool operator >(const Tensor&, const Tensor&);
+    friend bool operator <(const Tensor&, const Tensor&);
+    friend bool operator >=(const Tensor&, const Tensor&);
+    friend bool operator <=(const Tensor&, const Tensor&);
+    
     friend Tensor exp(const Tensor&);
     friend Tensor ln(const Tensor&);
     friend Tensor sin(const Tensor&);

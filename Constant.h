@@ -8,6 +8,7 @@ private:
 	void Release(){} 
 public:
 	Constant(const Tensor& _t,const std::string& _nm=""):Node(_nm,new Tensor(_t)){}
+	
 	std::string Expr()
 	{
 		return std::string("Constant(")+name+")";
