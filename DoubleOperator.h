@@ -156,7 +156,7 @@ private:
 public:
     Bigger(Node &_a, Node &_b, const std::string& _nm = "")
         :DoubleOperator(_a, _b, _nm) {
-        depends = 0;     //this can't be derived
+        prop = false;     //this can't be derived
     }
 
     Bigger(const Bigger &t) = default;
@@ -179,7 +179,7 @@ private:
 public:
     Smaller(Node &_a, Node &_b, const std::string& _nm = "")
         :DoubleOperator(_a, _b, _nm) {
-        depends = 0;     //this can't be derived
+        prop = false;     //this can't be derived
     }
 
     Smaller(const Smaller &t) = default;
@@ -202,13 +202,13 @@ private:
 public:
     BiggerEqual(Node &_a, Node &_b, const std::string& _nm = "")
         :DoubleOperator(_a, _b, _nm) {
-        depends = 0;     //this can't be derived
+        prop = false;     //this can't be derived
     }
 
     BiggerEqual(const BiggerEqual &t) = default;
 
     BiggerEqual(BiggerEqual &&t) :DoubleOperator(std::forward<DoubleOperator>(t)) {
-        depends = 0;
+        prop = false;
     }    //perfect transforward
 
     std::string Expr() {
@@ -225,7 +225,7 @@ private:
 public:
     SmallerEqual(Node &_a, Node &_b, const std::string& _nm = "")
         :DoubleOperator(_a, _b, _nm) {
-        depends = 0;     //this can't be derived
+        prop = false;     //this can't be derived
     }
 
     SmallerEqual(const SmallerEqual &t) = default;
@@ -248,7 +248,7 @@ private:
 public:
     Equal(Node &_a, Node &_b, const std::string& _nm = "")
         :DoubleOperator(_a, _b, _nm) {
-        depends = 0;     //this can't be derived
+        prop = false;     //this can't be derived
     }
 
     Equal(const Equal &t) = default;
@@ -262,6 +262,29 @@ public:
     }
 
     Node& derive(int index) override;
+};
+
+class Bind :public DoubleOperator {
+private:
+    void Judge(const Tensor&, const Tensor&) const override {}
+    Tensor eval(std::map<std::string, Tensor>&) override;
+public:
+    Bind(Node &_a, Node &_b, const std::string& _nm = "")
+        :DoubleOperator(_a, _b, _nm) {}
+
+    Bind(const Bind &t) = default;
+
+    Bind(Bind &&t) :DoubleOperator(std::forward<DoubleOperator>(t)) {}    //perfect transforward
+
+    std::string Expr() {
+        return "(" + a->Expr() + "==" + b->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
+
+    virtual Tensor Eval(std::map<std::string, Tensor>&) override;//使用map 
+    virtual Tensor Eval(const std::initializer_list
+        <std::pair<std::string, Tensor>>&) override;//使用初始化列表 
 };
 
 inline Bigger& operator >(Node& A, Node& B) {

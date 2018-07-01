@@ -151,11 +151,15 @@ class Transpose :public SingleOperator {
 private:
     Tensor* calc(const Tensor& A);
 public:
-    Transpose(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {}
+    Transpose(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {
+        prop = false;
+    }
 
     std::string Expr() {
         return "(" + a->Expr() + ")^T";
     }
+
+    //Node& Transpose::derive(int index) override;
 };
 
 class PowC :public SingleOperator {
@@ -171,8 +175,24 @@ public:
         std::string pc = std::to_string(c);
         return "(" + a->Expr() + "^" + pc + ")";
     }
+
+    Node& derive(int index) override;
 };
 
-/**第二阶段新增**/
+class Assert: public SingleOperator{
+private:
+    Tensor* calc(const Tensor& A);
+public:
+    Assert(Node &_a, const std::string& _nm = "") :SingleOperator(_nm, _a) {
+        prop = false;    //cannot derive it
+    }
+    std::string Expr() {
+        return "assert(" + a->Expr() + ")";
+    }
+
+    Node& derive(int index) override;
+};
+
+/**碌脷露镁陆脳露脦脨脗脭枚**/
 
 #endif

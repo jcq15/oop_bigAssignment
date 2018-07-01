@@ -185,7 +185,7 @@ Node& Pow::derive(int index) {
 
 //比较节点
 void Bigger::Judge(const Tensor& a, const Tensor& b) const {
-    if (a.M()!=1 || a.N()!=1 || b.M()!=1 || b.N()!=1)
+    if (a.Type() || b.Type())
         throw std::invalid_argument(
             "Error : Compare node \"" + name + "\" try to compare " + 
             std::to_string(a.N()) + "*" + std::to_string(a.M()) + " and " + 
@@ -211,7 +211,7 @@ Tensor Bigger::eval(std::map<std::string, Tensor>& Inputs) {
 }
 
 void Smaller::Judge(const Tensor& a, const Tensor& b) const {
-    if (a.M() != 1 || a.N() != 1 || b.M() != 1 || b.N() != 1)
+    if (a.Type() || b.Type())
         throw std::invalid_argument(
             "Error : Compare node \"" + name + "\" try to compare " +
             std::to_string(a.N()) + "*" + std::to_string(a.M()) + " and " +
@@ -237,7 +237,7 @@ Tensor Smaller::eval(std::map<std::string, Tensor>& Inputs) {
 }
 
 void BiggerEqual::Judge(const Tensor& a, const Tensor& b) const {
-    if (a.M() != 1 || a.N() != 1 || b.M() != 1 || b.N() != 1)
+    if (a.Type() || b.Type())
         throw std::invalid_argument(
             "Error : Compare node \"" + name + "\" try to compare " +
             std::to_string(a.N()) + "*" + std::to_string(a.M()) + " and " +
@@ -263,7 +263,7 @@ Tensor BiggerEqual::eval(std::map<std::string, Tensor>& Inputs) {
 }
 
 void SmallerEqual::Judge(const Tensor& a, const Tensor& b) const {
-    if (a.M() != 1 || a.N() != 1 || b.M() != 1 || b.N() != 1)
+    if (a.Type() || b.Type())
         throw std::invalid_argument(
             "Error : Compare node \"" + name + "\" try to compare " +
             std::to_string(a.N()) + "*" + std::to_string(a.M()) + " and " +
@@ -289,7 +289,7 @@ Tensor SmallerEqual::eval(std::map<std::string, Tensor>& Inputs) {
 }
 
 void Equal::Judge(const Tensor& a, const Tensor& b) const {
-    if (a.M() != 1 || a.N() != 1 || b.M() != 1 || b.N() != 1)
+    if (a.Type() || b.Type())
         throw std::invalid_argument(
             "Error : Compare node \"" + name + "\" try to compare " +
             std::to_string(a.N()) + "*" + std::to_string(a.M()) + " and " +
@@ -312,4 +312,45 @@ Tensor Equal::eval(std::map<std::string, Tensor>& Inputs) {
         }
     }
     return *value;
+}
+
+Tensor Bind::eval(std::map<std::string, Tensor>& Inputs) {
+    if (value == nullptr) {
+        Tensor A = a->eval(Inputs);
+        value = new Tensor(A);
+        if (debug) {
+            std::cout << "Print Operator:" << name << "(" << value->PrintType() << ")=" << Expr() << '\n';
+            std::cout << value->Print() << '\n';
+        }
+    }
+    return *value;
+}
+
+Node& Bind::derive(int index) {
+    if (index == 1) {
+        return *(new Constant(1));
+    }
+    else if (index == 2) {
+        return *(new Constant(0));
+    }
+    else {
+        throw std::invalid_argument(
+            "Error : derive argument error! Accept 1 or 2! ");
+    }
+}
+
+Tensor Bind::Eval(std::map<std::string, Tensor>& m) {
+    Tensor ans = b->eval(m);
+    Release();
+    return ans;
+}
+
+Tensor Bind::Eval(const std::initializer_list<std::pair<std::string, Tensor>>& il) {
+    std::map<std::string, Tensor> Inputs;
+    for (auto it = il.begin();it != il.end();it++) {
+        if (Inputs.find(it->first) != Inputs.end())
+            throw std::invalid_argument("Error : Redeclaration in inputs!");
+        Inputs[it->first] = it->second;
+    }
+    return Eval(Inputs);
 }

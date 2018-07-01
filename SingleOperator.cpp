@@ -101,3 +101,22 @@ Node& Atan::derive(int index) {
     Pow* ans2 = new Pow(*ans1, *new Constant(-1));
     return *ans2;
 }
+
+Node& PowC::derive(int index) {
+    if (index != 1)
+        throw std::invalid_argument("Error : derive argument error! Only accept 1! ");
+    auto cc = new Constant(c);
+    Pow* ans1 = new Pow(*a, *cc - *new Constant(1));
+    Mul* ans2 = new Mul(*ans1, *cc);
+    return *ans2;
+}
+
+Tensor* Assert::calc(const Tensor& A){
+    if(A<=0)
+        throw std::invalid_argument("Error : Assert <= 0");
+    return new Tensor(0);    
+}
+
+Node& Assert::derive(int index) {
+    throw std::runtime_error("Error : Try to derive an assert node!");
+}

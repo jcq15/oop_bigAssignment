@@ -44,7 +44,7 @@ void addMap(std::map<Node*, Node*>*m, Node* hot, Node* hot_temp, int index) {
         //我就把你嘿嘿嘿
     }
     else {                              //要是有
-        Node* temp = new Add(*it->first, *(it->second) * hot_temp->derive(index));
+        Node* temp = new Add(*it->second, *(*m)[hot_temp] * hot_temp->derive(index));
         it->second = temp;
         //我还要把你嘿嘿嘿
     }
@@ -55,6 +55,7 @@ void grader(std::map<Node*, Node*>*gradient, Node* hot) {
     if (hot->depend() == 1) {
         SingleOperator* hot_temp = dynamic_cast<SingleOperator*>(hot);
         hot = hot_temp->getA();             //孩子
+        if (!hot->Prop()) return;           //不接受求导就算了
         addMap(gradient, hot, hot_temp, 1);    //塞进去
         grader(gradient, hot);              //递归
         return;
@@ -62,11 +63,15 @@ void grader(std::map<Node*, Node*>*gradient, Node* hot) {
     if (hot->depend() == 2) {
         DoubleOperator* hot_temp = dynamic_cast<DoubleOperator*>(hot);
         hot = hot_temp->getA();             //左孩子
-        addMap(gradient, hot, hot_temp, 1);    //塞进去
-        grader(gradient, hot);
+        if (hot->Prop()) {
+            addMap(gradient, hot, hot_temp, 1);    //塞进去
+            grader(gradient, hot);
+        }
         hot = hot_temp->getB();             //右孩子
-        addMap(gradient, hot, hot_temp, 2);    //塞进去
-        grader(gradient, hot);
+        if (hot->Prop()) {
+            addMap(gradient, hot, hot_temp, 2);    //塞进去
+            grader(gradient, hot);
+        }
         return;
     }
 }
@@ -76,7 +81,7 @@ std::map<Node*, Node*>& Node::grad() {
     grader(gradient, hot);      //开始递归
     return *gradient;
 }
-
+/*
 bool operator ==(const Node& a, const Node& b) {
     return *a.value == *b.value;
 }
@@ -92,3 +97,4 @@ bool operator >=(const Node& a, const Node& b) {
 bool operator <=(const Node& a, const Node& b) {
     return *a.value <= *b.value;
 }
+*/

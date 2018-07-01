@@ -219,27 +219,27 @@ Tensor operator /(const Tensor& a,const Tensor& b)
 
 bool operator ==(const Tensor& a,const Tensor& b){
 	if(a.ismat||b.ismat)
-		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+		throw std::invalid_argument("Size Error");
 	return a.value==b.value;
 }
 bool operator >(const Tensor& a,const Tensor& b){
 	if(a.ismat||b.ismat)
-		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+		throw std::invalid_argument("Size Error");
 	return a.value>b.value;
 }
 bool operator <(const Tensor& a,const Tensor& b){
 	if(a.ismat||b.ismat)
-		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+		throw std::invalid_argument("Size Error");
 	return a.value<b.value;
 }
 bool operator >=(const Tensor& a,const Tensor& b){
 	if(a.ismat||b.ismat)
-		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+		throw std::invalid_argument("Size Error");
 	return a.value>=b.value;
 }
 bool operator <=(const Tensor& a,const Tensor& b){
 	if(a.ismat||b.ismat)
-		throw std::invalid_argument("Error : \""+a.PrintType()+"/"+b.PrintType()+"\" is not permitted!");
+		throw std::invalid_argument("Size Error");
 	return a.value<=b.value;
 }
 

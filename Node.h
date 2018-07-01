@@ -5,12 +5,25 @@
 #include "Tensor.h"
 #define NODE
 
+/*
+class Node;
+//stage2 add, using to fengzhuang gradiate
+class Gradiate {
+private:
+    std::map<Node*, Node*>* grad;
+public:
+    Gt
+    Node* operator[](Node* key) { return (*grad)[key]; }
+};
+*/
+
 class Node {
 protected:
     bool debug;
     std::string name;
     Tensor* value;
     int depends = 0;        //新增属性，描述输入节点个数
+    bool prop = true;       //是否接受别人对他求导（比如">"就不接受）
 public:
     Node(const std::string& _name, Tensor* _t = nullptr) :debug(false), name(_name), value(_t) {}
 
@@ -46,14 +59,15 @@ public:
     std::string PrintRely();
     virtual Tensor eval(std::map<std::string, Tensor>&) = 0;//求值 
     virtual void Release() = 0;//释放保存的值 
-    Tensor Eval(std::map<std::string, Tensor>&);//使用map 
-    Tensor Eval(const std::initializer_list<std::pair<std::string, Tensor>>&);//使用初始化列表 
+    virtual Tensor Eval(std::map<std::string, Tensor>&);//使用map 
+    virtual Tensor Eval(const std::initializer_list<std::pair<std::string, Tensor>>&);//使用初始化列表 
 
     /**第二阶段新增**/
-    int depend() const { return depends; }        //返回输入节点个数
-    virtual Node& derive(int index=0); //求导数，index表示对哪个参数求导，0自己，1a，2b
-    std::map<Node*, Node*>& grad();                //梯度
-
+    int depend() const { return depends; }          //返回输入节点个数
+    bool Prop() const { return prop; }              //RT
+    virtual Node& derive(int index=0);              //求导数，index表示对哪个参数求导
+    std::map<Node*, Node*>& grad();                 //梯度
+    /*
     friend bool operator ==(const Node&, const Node&);
     friend bool operator >(const Node&, const Node&);
     friend bool operator <(const Node&, const Node&);
@@ -69,6 +83,7 @@ public:
     friend bool operator <(const Tensor&a, const Node&b){return a<*b.value;}
     friend bool operator >=(const Tensor&a, const Node&b){return a>=*b.value;}
     friend bool operator <=(const Tensor&a, const Node&b){return a<=*b.value;}
+    */
 };
 
 #endif
