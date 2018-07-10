@@ -260,11 +260,23 @@ Tensor ln(const Tensor& a)
 	Tensor ans(a);
 	if(ans.ismat)
 	{
-		for(int i=0;i<ans.n;i++)
-			for(int j=0;j<ans.m;j++)
-				ans.matrix[i][j]=log(a.matrix[i][j]);
-	}else
-		ans.value=log(a.value);
+        for (int i = 0;i < ans.n;i++) {
+            for (int j = 0;j < ans.m;j++) {
+                if (!(a.matrix[i][j] > 0)) {
+                    throw std::invalid_argument(
+                        "Error : Log a negative number! ");
+                }
+                ans.matrix[i][j] = log(a.matrix[i][j]);
+            }
+        }
+    }
+    else {
+        if (!(a.value > 0)) {
+            throw std::invalid_argument(
+                "Error : Log a negative number! ");
+        }
+        ans.value = log(a.value);
+    }
 	return ans;
 }
 
